@@ -32,10 +32,10 @@ tasks/attack_homework/submission/attack.py
 
 ## Evaluating the submissions
 Run the evaluator by following steps
-'''
-cd tasks/attack_homework/
-python Evaluator_attack_homework.py
-'''
+```
+$ cd tasks/attack_homework/
+$ python Evaluator_attack_homework.py
+```
 
 ## Results
 View your results at 
