@@ -74,11 +74,11 @@ class TorchVisionDataset:
                 new_data.append(new_instance)
         return new_data
 
-def get_dataset(name, dataset_configs, server=False):
+def get_dataset(name, dataset_configs):
     if name == "MNIST":
-        return _read_mnist_dataset(dataset_configs, name, server)
+        return _read_mnist_dataset(dataset_configs, name)
     elif name == "CIFAR10":
-        return _read_cifar10_dataset(dataset_configs, name, server)
+        return _read_cifar10_dataset(dataset_configs, name)
 
 def _split_by_labels(num_classes, train_data, server_number_sampled, train_server_path):
     subset_indices = []
@@ -95,61 +95,13 @@ def _split_by_labels(num_classes, train_data, server_number_sampled, train_serve
     return train_server_subset
 
 
-def _read_mnist_dataset(dataset_configs, dataset_name, server):
+def _read_mnist_dataset(dataset_configs, dataset_name):
     path = dataset_configs["dataset_path"]
-    if server == True:
-        # 1.1 Training Data for Server
-        train_server_path = os.path.join(path, "train_server_split.pt")
-        if os.path.exists(train_server_path):
-            print("loaded existing data")
-            train_server_subset = torch.load(train_server_path)
-        else:
-            train_data = datasets.MNIST(
-                root=path,
-                train=True,
-                download=True,
-                transform=transforms.Compose([transforms.ToTensor(),]),
-            )
-            test_data = datasets.MNIST(
-                root=path,
-                train=False,
-                download=True,
-                transform=transforms.Compose([transforms.ToTensor(),]),
-            )
-            num_classes = len(train_data.classes)
-            server_number_sampled = dataset_configs["server_train_number"] // num_classes
-            train_server_subset = _split_by_labels(
-                num_classes, train_data, server_number_sampled, train_server_path
-            )
-        train_server_data = TorchVisionDataset(
-            name=dataset_name, data=train_server_subset, split="train",
-        )
-
-        # 1.2 Test Data for Server
-        test_server_path = os.path.join(path, "test_server_split.pt")
-        if os.path.exists(test_server_path):
-            test_server_subset = torch.load(test_server_path)
-        else:
-            test_data = datasets.MNIST(
-                root=path,
-                train=False,
-                download=True,
-                transform=transforms.Compose([transforms.ToTensor(),]),
-            )
-            num_classes = len(test_data.classes)
-            server_number_sampled = dataset_configs["server_test_number"] // num_classes
-            test_server_subset = _split_by_labels(
-                num_classes, test_data, server_number_sampled, test_server_path
-            )
-        test_server_data = TorchVisionDataset(
-            name=dataset_name, data=test_server_subset, split="test",
-        )
-
-
+    
     # 2.1 Training Data for Student
-    train_student_path = os.path.join(path, "train_student_split.pt")
-    if os.path.exists(train_student_path):
-        train_student_subset = torch.load(train_student_path)
+    train_path = os.path.join(path, "train_split.pt")
+    if os.path.exists(train_path):
+        train_student_subset = torch.load(train_path)
     else:
         train_data = datasets.MNIST(
             root=path,
@@ -160,16 +112,16 @@ def _read_mnist_dataset(dataset_configs, dataset_name, server):
         num_classes = len(train_data.classes)
         student_number_sampled = dataset_configs["student_train_number"] // num_classes
         train_student_subset = _split_by_labels(
-            num_classes, train_data, student_number_sampled, train_student_path
+            num_classes, train_data, student_number_sampled, train_path
         )
     train_student_data = TorchVisionDataset(
         name=dataset_name, data=train_student_subset, split="train",
     )
 
     # 2.2 Test Data for Student
-    test_student_path = os.path.join(path, "test_student_split.pt")
-    if os.path.exists(test_student_path):
-        test_student_subset = torch.load(test_student_path)
+    test_path = os.path.join(path, "test_split.pt")
+    if os.path.exists(test_path):
+        test_student_subset = torch.load(test_path)
     else:
         test_data = datasets.MNIST(
             root=path,
@@ -180,29 +132,21 @@ def _read_mnist_dataset(dataset_configs, dataset_name, server):
         num_classes = len(test_data.classes)
         student_number_sampled = dataset_configs["student_test_number"] // num_classes
         test_student_subset = _split_by_labels(
-            num_classes, test_data, student_number_sampled, test_student_path
+            num_classes, test_data, student_number_sampled, test_path
         )
     test_student_data = TorchVisionDataset(
         name=dataset_name, data=test_student_subset, split="test",
     )
-    if server == True:
-        print(f"train_server_data length: {len(train_server_data)}, train_student_data length: {len(train_student_data)}, test_server_data length: {len(test_server_data)}, test_student_data length: {len(test_student_data)}")
-        return {
-            "train": train_student_data,
-            "test": test_student_data,
-            "server_test": test_server_data
-        }
-    else:
-        print(f"train_student_data length: {len(train_student_data)}, test_student_data length: {len(test_student_data)}")
-        return {
-            "train": train_student_data,
-            "test": test_student_data,
-        }  # test_server_data,test_student_data
+    print(f"train_student_data length: {len(train_student_data)}, test_student_data length: {len(test_student_data)}")
+    return {
+        "train": train_student_data,
+        "test": test_student_data,
+    }  # test_server_data,test_student_data
 
 
 
 
-def _read_cifar10_dataset(dataset_configs, dataset_name, server):
+def _read_cifar10_dataset(dataset_configs, dataset_name, server = False):
     path = dataset_configs["dataset_path"]
     if server == True:
     # 1.1 Training Data for Server

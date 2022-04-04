@@ -1,1 +1,0 @@
-{"attacker_success_rate": 0.0, "time": 10.356943539809436, "dist": 2.065266298860568, "predict": 20001.0, "gradient": 0, "meets_expectations": "False"}

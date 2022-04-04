@@ -25,14 +25,12 @@ def evaluate_attack(defense_list, attack_path, dataset, device, target_label=Non
 
 def run():
     parser = argparse.ArgumentParser(description="Attack Homework Evaluation")
-    parser.add_argument('--server', type=str, default='False', help='Server style or Student style')
     parser.add_argument('--data_path', type=str, default='datasets/MNIST/student', help='path to the folder containing datasets')
     parser.add_argument('--folder_path', type=str, default='tasks/attack_homework', help='the folder path that need to evaluate. If evaluating the attack, use tasks/attack_homework.')
     parser.add_argument('--defender_path', type=str, default='tasks/attack_homework/defender', help='the folder path that need to evaluate. If evaluating the attack, use tasks/war_attack.')
     parser.set_defaults(feature=True)
     args = parser.parse_args()
     # print(args)
-    SERVER = args.server
     students_submission_path = 'submission'
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # print("device: ", device)
@@ -46,16 +44,16 @@ def run():
                 "server_test_number": 100
     }
     dataset_configs["dataset_path"] = args.data_path
-    dataset = get_dataset("MNIST", dataset_configs, SERVER)
+    dataset = get_dataset("MNIST", dataset_configs)
     defense_list = [
             "defender",
         ]
     target_label = 0 
     results = evaluate_attack(defense_list, students_submission_path, dataset,  device, target_label)
     print(results)
-    file_path = 'results.txt'
+    file_path = 'results.json'
     with open(file_path, 'w') as f:
-        json.dump(results,f)
+        json.dump(results,f, indent=4)
     return results
        
 
