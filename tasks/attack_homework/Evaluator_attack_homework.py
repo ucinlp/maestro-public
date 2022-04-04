@@ -26,7 +26,7 @@ def evaluate_attack(defense_list, attack_path, dataset, device, target_label=Non
 def run():
     parser = argparse.ArgumentParser(description="Attack Homework Evaluation")
     parser.add_argument('--server', type=str, default='False', help='Server style or Student style')
-    parser.add_argument('--data_path', type=str, default='datasets/MNIST/attack_homework/student', help='path to the folder containing datasets')
+    parser.add_argument('--data_path', type=str, default='datasets/MNIST/student', help='path to the folder containing datasets')
     parser.add_argument('--folder_path', type=str, default='tasks/attack_homework', help='the folder path that need to evaluate. If evaluating the attack, use tasks/attack_homework.')
     parser.add_argument('--defender_path', type=str, default='tasks/attack_homework/defender', help='the folder path that need to evaluate. If evaluating the attack, use tasks/war_attack.')
     parser.set_defaults(feature=True)
