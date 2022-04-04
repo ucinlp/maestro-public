@@ -16,7 +16,7 @@ def evaluate_attack(defense_list, attack_path, dataset, device, target_label=Non
         results["predict"] = r['predict_queries']
         results["gradient"] = r['gradient_queries']
 
-        if (100 - r['targeted_adv_acc'] > 96) and (r['distance'] < 7.5) and (r['predict_queries'] < 8500):
+        if (100 - r['targeted_adv_acc'] > 96) and (r['distance'] < 7.75) and (r['predict_queries'] < 8500):
             results["meets_expectations"] = "True"
         else:
             results["meets_expectations"] = "False"
