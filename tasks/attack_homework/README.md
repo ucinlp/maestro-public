@@ -31,4 +31,4 @@ tasks/attack_homework/results.txt
 You need to satisfy the following criteria to make a valid submission
 1. attack success rate > 96 %
 2. number of queries < 8500
-3. distance < 7.5
+3. distance < 7.75
