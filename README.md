@@ -11,7 +11,3 @@ Once the virtual environment is set, install the requirements:
 ```
 $ (env) pip3 install -r requirements.txt
 ```
-Finally, install Maestro:
-```
-$ (env) python3 -m pip install -e .
-```
