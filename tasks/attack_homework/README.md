@@ -3,7 +3,7 @@
 ## Description
 
 ## Dowloading datasets
-Download the datasets from here and copy them the following path 
+Download the datasets from [here](https://canvas.eee.uci.edu/courses/45810/files/folder/data/attack_homework) and copy them the following path 
 ```
 tasks/attack_homework/datasets/MNIST/student/
 ```
