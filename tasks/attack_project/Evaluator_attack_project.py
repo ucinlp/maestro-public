@@ -16,9 +16,13 @@ def evaluate_attack(defense_list, attack_path, dataset, device, target_label=Non
         results["predict"] = r['predict_queries']
         results["gradient"] = r['gradient_queries']
         
-        total_queries = results["predict"] + results["gradient"]
+        results["total_queries"] = results["predict"] + results["gradient"]
+        if results["gradient"] == 0:
+            results["attack_type"] = "BlackBox"
+        else:
+            results["attack_type"] = "WhiteBox"
 
-        results["score"] = (min(results["attacker_success_rate"], 100)/100) * 70 + (max(8000 - total_queries, 0)/8000) * 20 + (max(7.5-results["dist"],0)/7.5) * 10
+        results["score"] = (max(results["attacker_success_rate"] - 40, 0)/60) * 70 + (max(1000 - results["total_queries"], 0)/1000) * 20 + (max(7.5-results["dist"],0)/7.5) * 10
 
         # if (100 - r['targeted_adv_acc'] > 96) and (r['distance'] < 7.75) and (r['predict_queries'] < 8500):
         #     results["meets_expectations"] = "True"

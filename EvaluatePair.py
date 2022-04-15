@@ -124,7 +124,7 @@ class EvaluatePair:
         targeted_adv_acc = 100 * targeted_correct / total
         untargeted_adv_acc = 100 * untargeted_correct / total
         # print("query:", self.defender.predict_queries, self.defender.gradient_queries)
-        return {"targeted_adv_acc": targeted_adv_acc, "untargeted_adv_acc": untargeted_adv_acc, "run_time": run_time, "distance": np.mean(distance), "predict_queries": self.defender.predict_queries/total, "gradient_queries": self.defender.gradient_queries}
+        return {"targeted_adv_acc": targeted_adv_acc, "untargeted_adv_acc": untargeted_adv_acc, "run_time": run_time, "distance": np.mean(distance), "predict_queries": self.defender.predict_queries/total, "gradient_queries": self.defender.gradient_queries/total}
     
     def raw_evaluate(self):
         # 3 evaluate on original data

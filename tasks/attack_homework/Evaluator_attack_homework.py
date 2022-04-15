@@ -44,7 +44,7 @@ def run():
                 "server_test_number": 100
     }
     dataset_configs["dataset_path"] = args.data_path
-    dataset = get_dataset("MNIST", dataset_configs)
+    dataset = get_dataset(dataset_configs)
     defense_list = [
             "defender",
         ]

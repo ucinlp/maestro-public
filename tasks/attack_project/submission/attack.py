@@ -44,6 +44,5 @@ class Attack:
         adv_outputs = self.vm.get_batch_output(perturbed_image)
         final_pred = adv_outputs.max(1, keepdim=True)[1]
         correct = 0
-        if final_pred.item() != labels.item():
-            correct = 1
+        correct += (final_pred == target_labels).sum().item()
         return np.squeeze(perturbed_image.cpu().detach().numpy()), correct
