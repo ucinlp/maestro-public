@@ -33,6 +33,7 @@ class Attack:
         original_images = original_images.to(self.device)
         original_images = torch.unsqueeze(original_images, 0)
         labels = torch.tensor(labels).to(self.device)
+        target_labels = target_label * torch.ones_like(labels).to(self.device)
         perturbed_image = original_images
         
         # -------------------- TODO ------------------ #
