@@ -47,7 +47,9 @@ tasks/attack_project/results.json
 
 ## Evaluation metrics
 A final score is generated based on your results(attack success rate, queries, distance). Score is calculated as follows:
+```
 Final Score = 70* max(success_rate - 40, 0)/60 +  20 * max(1000 - total_queries, 0)/1000 + 10 * max(7.5 - distance, 0)/7.5
+```
 
 ## FGSM attack -- Reference
 FGSM implementation is the following location
