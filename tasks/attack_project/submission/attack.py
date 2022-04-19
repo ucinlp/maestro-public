@@ -10,7 +10,6 @@ class Attack:
     def __init__(
         self,
         vm, device, attack_path,
-        epsilon = 0.2,
         min_val = 0,
         max_val = 1
     ):
@@ -18,12 +17,15 @@ class Attack:
         args:
             vm: virtual model is wrapper used to get outputs/gradients of a model.
             device: system on which code is running "cpu"/"cuda"
-            epsilon: magnitude of perturbation that is added
+            min_val: minimum value of each element in original image
+            max_val: maximum value of each element in original image
+                     each element in perturbed image should be in the range of min_val and max_val
+            attack_path: Any other sources files that you may want to use like models should be available in ./submissions/ folder and loaded by attack.py. 
+                         Server doesn't load any external files. Do submit those files along with attack.py
         """
         self.vm = vm
         self.device = device
         self.attack_path = attack_path
-        self.epsilon = 0.1
         self.min_val = 0
         self.max_val = 1
 
