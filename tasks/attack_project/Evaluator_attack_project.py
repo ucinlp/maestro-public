@@ -22,7 +22,7 @@ def evaluate_attack(defense_list, attack_path, dataset, device, target_label=Non
         else:
             results["attack_type"] = "WhiteBox"
 
-        results["score"] = (max(results["attacker_success_rate"] - 40, 0)/60) * 70 + (max(1000 - results["total_queries"], 0)/1000) * 20 + (max(7.5-results["dist"],0)/7.5) * 10
+        results["score"] = (max(results["attacker_success_rate"] - 40, 0)/60) * 70 + (max(1000 - results["total_queries"], 0)/1000) * 20 + (max(15-results["dist"],0)/15) * 10
 
         # if (100 - r['targeted_adv_acc'] > 96) and (r['distance'] < 7.75) and (r['predict_queries'] < 8500):
         #     results["meets_expectations"] = "True"
