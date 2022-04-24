@@ -80,7 +80,7 @@ class EvaluatePair:
                 continue
             perturbed_data, success = attack_method(img, [labels], target_label)
             perturbed_images.append((labels, perturbed_data))
-            delta_data = img - perturbed_data[0]
+            delta_data = img - perturbed_data
             distance.append(np.linalg.norm(delta_data))
             n_success_attack += success
         return distance, perturbed_images, n_success_attack
