@@ -65,14 +65,14 @@ class Prediction():
         # predictions = torch.tensor(predictions)
         return predictions
 
-    def get_batch_input_gradient(self, original_images, labels, lossf=None, args=None):
+    def get_batch_input_gradient(self, original_images, labels, lossf=None):
         original_images.requires_grad = True
         self.model.eval()
         outputs = self.model(original_images)
         if lossf is None:
             loss = func.nll_loss(outputs, labels)
         else:
-            loss = lossf(outputs, labels, args) 
+            loss = lossf(outputs, labels) 
         self.model.zero_grad()
         loss.backward()
         data_grad = original_images.grad.data

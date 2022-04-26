@@ -35,9 +35,9 @@ class VirtualModel:
         output = self.defender.get_batch_output(batch)
         return output.detach()
 
-    def get_batch_input_gradient(self, batch, labels, lossf=None, args=None):
+    def get_batch_input_gradient(self, batch, labels, lossf=None):
         self.gradient_queries += batch.shape[0]
-        return self.defender.get_batch_input_gradient(batch, labels, lossf, args).detach()
+        return self.defender.get_batch_input_gradient(batch, labels, lossf).detach()
 
     def reset_stats(self):
         self.predict_queries = 0
