@@ -26,7 +26,7 @@ class TorchVisionDataset:
     """
 
     def __init__(
-        self, name,data, split="train", shuffle=False,
+        self, name,data, split="train", shuffle=True,
     ):
         self._name = name
         self._split = split
@@ -99,6 +99,8 @@ def label_update(num_classes, train_data, server_number_sampled, train_server_pa
         for i in list(label_custom.keys()):
             for ori_label in label_custom[i]:
                 single_number_sampled = int(server_number_sampled / len(label_custom[i]))
+                # print(single_number_sampled)
+                    # break
                 indices_xi = (torch.LongTensor(train_data.targets) == ori_label).nonzero(as_tuple=True)[0]
                 sampled_indices = np.random.choice(indices_xi, single_number_sampled, replace=False)
                 subset_indices.extend(sampled_indices)
@@ -108,6 +110,14 @@ def label_update(num_classes, train_data, server_number_sampled, train_server_pa
             mask = sum(train_data.targets==i for i in label_custom[i]).bool()
             train_data.targets[mask] = i
 
+        # mask = sum(train_data.targets==i for i in label_binary[0]).bool()
+        # train_data.targets[mask] = 0
+        # mask = sum(train_data.targets==i for i in label_binary[1]).bool()
+        # train_data.targets[mask] = 1
+        # mask = sum(train_data.targets==i for i in label_binary[2]).bool()
+        # train_data.targets[mask] = 2
+        # mask = sum(train_data.targets==i for i in label_binary[3]).bool()
+        # train_data.targets[mask] = 3
     else:
         for i in range(num_classes):
             indices_xi = (torch.LongTensor(train_data.targets) == i).nonzero(as_tuple=True)[0]
@@ -125,7 +135,7 @@ def label_update(num_classes, train_data, server_number_sampled, train_server_pa
 def _read_mnist_dataset(dataset_configs, dataset_name):
     path = dataset_configs["dataset_path"]
 
-    # 2.1 Training Data for Student
+    # 1.1 Training Data
     train_student_path = os.path.join(path, "train_split.pt")
     if os.path.exists(train_student_path):
         train_student_subset = torch.load(train_student_path)
@@ -145,7 +155,7 @@ def _read_mnist_dataset(dataset_configs, dataset_name):
         name=dataset_name, data=train_student_subset, split="train",
     )
 
-    # 2.2 Test Data for Student
+    # 1.2 Test Data
     test_student_path = os.path.join(path, "test_split.pt")
     if os.path.exists(test_student_path):
         test_student_subset = torch.load(test_student_path)
@@ -164,13 +174,33 @@ def _read_mnist_dataset(dataset_configs, dataset_name):
     test_student_data = TorchVisionDataset(
         name=dataset_name, data=test_student_subset, split="test",
     )
-    print(f"train_data length: {len(train_student_data)}, test_data length: {len(test_student_data)}")
+
+    # 1.3 Val Data
+    val_student_path = os.path.join(path, "val_split.pt")
+    if os.path.exists(val_student_path):
+        val_student_subset = torch.load(val_student_path)
+    else:
+        val_data = datasets.MNIST(
+            root=path,
+            train=False,
+            download=True,
+            transform=transforms.Compose([transforms.ToTensor(),]),
+        )
+        num_classes = len(val_data.classes)
+        student_number_sampled = dataset_configs["student_val_number"] // num_classes
+        val_student_subset = _split_by_labels(
+            num_classes, val_data, student_number_sampled, val_student_path
+        )
+    val_student_data = TorchVisionDataset(
+        name=dataset_name, data=val_student_subset, split="test",
+    )
+
+    print(f"train_data length: {len(train_student_data)}, test_data length: {len(test_student_data)}, val_data length: {len(val_student_data)}")
     return {
         "train": train_student_data,
         "test": test_student_data,
-    }  # test_server_data,test_student_data
-
-
+        "val": val_student_data,
+    }
 
 
 def _read_cifar10_dataset(dataset_configs, dataset_name):
@@ -184,6 +214,7 @@ def _read_cifar10_dataset(dataset_configs, dataset_name):
 
     # 1.2 Training Data for Student
     train_student_path = os.path.join(path, "train_split.pt")
+
     if os.path.exists(train_student_path):
         train_student_subset = torch.load(train_student_path)
     else:
@@ -194,11 +225,22 @@ def _read_cifar10_dataset(dataset_configs, dataset_name):
             transform=transforms.Compose([transforms.ToTensor()]),
         )
 
+        # num_classes = len(train_data.classes)
+        # student_number_sampled = dataset_configs["student_train_number"] // num_classes
+        # train_student_subset = _split_by_labels(
+        #     num_classes, train_data, student_number_sampled, train_student_path
+        # )
         num_classes = len(label_custom)
         student_number_sampled = dataset_configs["student_train_number"] // num_classes
         train_student_subset = label_update(
             num_classes, train_data, student_number_sampled, train_student_path, custom, label_custom)
 
+    # print(len(train_student_subset))
+    #     # print(train_data.max)
+    #     # print(train_data.min)
+    # print(torch.max(((train_student_subset[0][0]))))
+    # print(torch.min(((train_student_subset[0][0]))))
+    # exit()
     train_student_data = TorchVisionDataset(
         name=dataset_name, data=train_student_subset, split="train",
     )
@@ -214,6 +256,11 @@ def _read_cifar10_dataset(dataset_configs, dataset_name):
             download=True,
             transform=transforms.Compose([transforms.ToTensor()]),
         )
+        # num_classes = len(val_data.classes)
+        # student_number_sampled = dataset_configs["student_val_number"] // num_classes
+        # val_student_subset = _split_by_labels(
+        #     num_classes, val_data, student_number_sampled, val_student_path
+        # )
         num_classes = len(label_custom)
         student_number_sampled = dataset_configs["student_val_number"] // num_classes
         val_student_subset = label_update(
@@ -236,6 +283,11 @@ def _read_cifar10_dataset(dataset_configs, dataset_name):
             download=True,
             transform=transforms.Compose([transforms.ToTensor()]),
         )
+        # num_classes = len(test_data.classes)
+        # student_number_sampled = dataset_configs["student_test_number"] // num_classes
+        # test_student_subset = _split_by_labels(
+        #     num_classes, test_data, student_number_sampled, test_student_path
+        # )
         num_classes = len(label_student)
         student_number_sampled = dataset_configs["student_test_number"] // num_classes
         test_student_subset = label_update(

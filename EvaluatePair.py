@@ -11,17 +11,15 @@ class VirtualModel:
     def __init__(self, device, defender) -> None:
         self.device = device
         self.defender = defender
-        # self.model = defender.model
         self.predict_queries = 0
         self.gradient_queries = 0
-        # pass
 
     def _set(self, status):
         if status == "train":
-            self.defender.model.train()
+            self.defender.train()
             return self
         elif status == "eval":
-            self.defender.model.eval()
+            self.defender.eval()
             return self
         else:
             raise Exception("model status is set wrongly.")
@@ -42,6 +40,7 @@ class VirtualModel:
     def reset_stats(self):
         self.predict_queries = 0
         self.gradient_queries = 0
+        return 'seted'
 
 
 class EvaluatePair:
@@ -74,15 +73,24 @@ class EvaluatePair:
         n_success_attack = 0
         perturbed_images = []
         for img, labels in testset:
-            if target_label != None and target_label == labels:
-                print("label ", labels)
-                print("target_label ", target_label)
+            org_img = img.to(self.device)
+            org_img = torch.unsqueeze(org_img, 0)
+            output = self.defender.get_batch_output(org_img)
+            _, predicted = torch.max(output.data, 1)
+            if predicted != labels or (target_label != None and target_label == labels):
+                # print(f"skipped data point: org_label {labels}, predicted_label {predicted.item()}")
                 continue
-            perturbed_data, success = attack_method(img, [labels], target_label)
-            perturbed_images.append((labels, perturbed_data))
-            delta_data = img - perturbed_data
+            # print(org_img.shape)
+            perturbed_data, success = attack_method(org_img, [labels], target_label) # img size: [1,28,28]
+
+            # print(perturbed_data.shape, org_img.shape)
+            # exit()
+
+            perturbed_images.append((labels, perturbed_data[0]))
+            delta_data = org_img.detach().cpu().numpy() - perturbed_data
             distance.append(np.linalg.norm(delta_data))
             n_success_attack += success
+        # print("adversarial_success: ", n_success_attack)
         return distance, perturbed_images, n_success_attack
 
     def evaluate(self, target_label = None):
@@ -101,31 +109,38 @@ class EvaluatePair:
             adv_images.append(image[1])
             gt_labels.append(image[0])
         adv_images = (torch.tensor(np.array(adv_images)).type(torch.FloatTensor))
+        # print(np.array(adv_images).shape)
+        # exit()
         gt_labels = torch.tensor(gt_labels)
 
         adv_dataset = torch.utils.data.TensorDataset(adv_images, gt_labels)
         adv_testloader = torch.utils.data.DataLoader(adv_dataset, batch_size=100, shuffle=True, num_workers=10)  # raw data
-        targeted_correct = 0
-        untargeted_correct = 0
+        targeted_success = 0
+        untargeted_success = 0
         total = 0
         with torch.no_grad():
             for inputs, labels in adv_testloader:
                 inputs = inputs.to(self.device)
                 labels = labels.to(self.device)
+                    # outputs = model(inputs)
+                # print(inputs.shape)
                 outputs = self.defender.get_batch_output(inputs)
                 _, predicted = torch.max(outputs, 1)
                 if target_label != None:
-                    targeted_correct += (predicted != target_label).sum().item()
-                    targeted_correct += (predicted == torch.full(predicted.shape, -1, dtype=torch.int).to(self.device)).sum().item()
+                    targeted_success += (predicted == target_label).sum().item()
+                    # targeted_success -= (predicted == torch.full(predicted.shape, -1, dtype=torch.int).to(self.device)).sum().item()
 
                 total += labels.size(0)
-                untargeted_correct += (predicted == labels).sum().item()
-                untargeted_correct += (predicted == torch.full(predicted.shape, -1, dtype=torch.int).to(self.device)).sum().item()
-        targeted_adv_acc = 100 * targeted_correct / total
-        untargeted_adv_acc = 100 * untargeted_correct / total
+                untargeted_success += (predicted != labels).sum().item()
+                untargeted_success -= (predicted == torch.full(predicted.shape, -1, dtype=torch.int).to(self.device)).sum().item()
+        # print("Accuracy of the network on the adv images: %.3f %%" % (100 * correct / total))
+        targeted_adv_sr = 100 * targeted_success / total
+        untargeted_adv_sr = 100 * untargeted_success / total
+        print("total: ", total)
         # print("query:", self.defender.predict_queries, self.defender.gradient_queries)
-        return {"targeted_adv_acc": targeted_adv_acc, "untargeted_adv_acc": untargeted_adv_acc, "run_time": run_time, "distance": np.mean(distance), "predict_queries": self.defender.predict_queries/total, "gradient_queries": self.defender.gradient_queries/total}
-    
+        return {"targeted_adv_sr": targeted_adv_sr, "untargeted_adv_sr": untargeted_adv_sr, "run_time": run_time, "distance": np.mean(distance), "predict_queries": self.defender.predict_queries/total, "gradient_queries": self.defender.gradient_queries/total}
+        # return score
+
     def raw_evaluate(self):
         # 3 evaluate on original data
         testset = self.dataset['test'] # TorchVisionDataset
@@ -144,6 +159,7 @@ class EvaluatePair:
                 output = self.defender.get_batch_output(inputs)
                 _, predicted = torch.max(output.data, 1)
                 total += labels.size(0)
+                # print(predicted)
                 correct += (predicted == labels).sum().item()
         run_time = time.perf_counter() - start_time
 
