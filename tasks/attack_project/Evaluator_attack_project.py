@@ -10,12 +10,12 @@ def evaluate_attack(defense_list, attack_path, dataset, device, target_label=Non
     for defense_path in defense_list:
         e = EvaluatePair(attack_path, defense_path, dataset, device)
         r = e.evaluate(target_label)
-        results["attacker_success_rate"] = 100 - r['targeted_adv_acc']
+        results["attacker_success_rate"] = r['targeted_adv_sr']
         results["time"] = r['run_time']
         results["dist"] = r['distance']
         results["predict"] = r['predict_queries']
         results["gradient"] = r['gradient_queries']
-        
+
         results["total_queries"] = results["predict"] + results["gradient"]
         if results["gradient"] == 0:
             results["attack_type"] = "BlackBox"
@@ -50,7 +50,7 @@ def run():
                 "student_val_number": 1000,
                 "student_test_number": 100,
     }
-    dataset = get_dataset(dataset_configs) 
+    dataset = get_dataset(dataset_configs)
     defense_list = [
             args.defender_path,
         ]

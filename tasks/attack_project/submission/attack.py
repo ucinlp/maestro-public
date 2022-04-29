@@ -20,7 +20,7 @@ class Attack:
             min_val: minimum value of each element in original image
             max_val: maximum value of each element in original image
                      each element in perturbed image should be in the range of min_val and max_val
-            attack_path: Any other sources files that you may want to use like models should be available in ./submissions/ folder and loaded by attack.py. 
+            attack_path: Any other sources files that you may want to use like models should be available in ./submissions/ folder and loaded by attack.py.
                          Server doesn't load any external files. Do submit those files along with attack.py
         """
         self.vm = vm
@@ -33,11 +33,11 @@ class Attack:
         self, original_images: np.ndarray, labels: List[int], target_label = None,
     ):
         original_images = original_images.to(self.device)
-        original_images = torch.unsqueeze(original_images, 0)
+        # original_images = torch.unsqueeze(original_images, 0)
         labels = torch.tensor(labels).to(self.device)
         target_labels = target_label * torch.ones_like(labels).to(self.device)
         perturbed_image = original_images
-        
+
         # -------------------- TODO ------------------ #
 
         # Write your attack function here
@@ -48,4 +48,4 @@ class Attack:
         final_pred = adv_outputs.max(1, keepdim=True)[1]
         correct = 0
         correct += (final_pred == target_labels).sum().item()
-        return np.squeeze(perturbed_image.cpu().detach().numpy()), correct
+        return perturbed_image.cpu().detach().numpy(), correct
