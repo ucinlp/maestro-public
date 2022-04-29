@@ -1,13 +1,5 @@
 # Defense Homework
 
-## Description
-
-## Dowloading datasets
-Download the datasets from [here](https://canvas.eee.uci.edu/courses/45810/files/folder/data/attack_homework) and copy them the following path
-```
-tasks/defense_homework/datasets/MNIST/student/
-```
-
 ## Assignment
 Complete the missing code in ToDo sections of train.py in the following path
 ```
@@ -25,7 +17,7 @@ $ python Evaluator_defense_homework.py
 ## Results
 View your results at
 ```
-tasks/defense_homework/results.txt
+tasks/defense_homework/results.json
 ```
 
 ## Evaluation metrics
