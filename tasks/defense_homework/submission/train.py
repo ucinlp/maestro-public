@@ -84,15 +84,16 @@ class Adv_Training():
                 labels = labels.to(device)
                 # zero the parameter gradients
             # --------------TODO--------------\
-                adv_inputs = self.perturb.attack(inputs, labels.detach().cpu().tolist())
+                adv_inputs, _ = self.perturb.attack(inputs, labels.detach().cpu().tolist())
+                adv_inputs = torch.tensor(adv_inputs).to(device)                
                 # zero the parameter gradients
                 optimizer.zero_grad()
                 outputs = self.model(inputs)
                 loss = criterion(outputs, labels)
                 loss.backward()
                 optimizer.step()
-            # --------------End TODO--------------\
                 running_loss += loss.item()
+            # --------------End TODO--------------\
             print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / dataset_size))
             running_loss = 0.0
 
