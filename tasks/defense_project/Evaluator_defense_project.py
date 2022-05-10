@@ -17,7 +17,6 @@ def evaluate_defense(attack_list, defense_path, dataset, device, target_label=No
             RAW = 1
         r = e.evaluate(target_label)
         results[attack_path.split('/')[-1].split('.')[0]+"_targeted_sr"] = r['targeted_adv_sr']
-        print(results["score"])
         results["score"] += 15 * (100 - r['targeted_adv_sr']) / 100
     return results
 
