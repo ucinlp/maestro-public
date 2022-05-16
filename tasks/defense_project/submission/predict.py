@@ -61,16 +61,25 @@ class Prediction():
         return False
 
     def get_batch_output(self, images):
+        outputs = self.model(images).to(self.device)
+        return outputs
+
+    def get_batch_label(self, images):
         predictions = []
         for ini_image in images:
             image = torch.unsqueeze(ini_image, 0)
             if self.detect_attack(image):
                 predictions.append(-1)
             else:
-                prediction = self.model(image).to(self.device)
-                predictions.append(prediction.detach().cpu().numpy())
+                # print(image.shape)
+                outputs = self.model(image).to(self.device)
+                _, predicted = torch.max(outputs, 1)
+
+                # print(prediction.shape)
+                predictions.append(predicted)
         predictions = torch.tensor(predictions).to(self.device)
-        predictions = torch.squeeze(predictions, 1)
+        # predictions = torch.squeeze(predictions, 1)
+        # print(predictions.shape)
         return predictions
 
 

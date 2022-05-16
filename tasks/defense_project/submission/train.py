@@ -68,7 +68,7 @@ class Adv_Training():
         return attacker
 
 
-    def train(self, trainset, valset, device, epoches=40):
+    def train(self, trainset, valset, device, epoches=30):
         self.model.to(device)
         self.model.train()
         trainloader = torch.utils.data.DataLoader(trainset, batch_size=100, shuffle=True, num_workers=10)
@@ -98,7 +98,6 @@ class Adv_Training():
         total = 0
         with torch.no_grad():
             for inputs, labels in valloader:
-                # print(inputs.shape, labels.shape)
                 inputs = inputs.to(device)
                 labels = labels.to(device)
                 outputs = self.model(inputs)

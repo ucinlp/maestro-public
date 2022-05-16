@@ -33,6 +33,11 @@ class VirtualModel:
         output = self.defender.get_batch_output(batch)
         return output.detach()
 
+    def get_batch_label(self, batch):
+        self.predict_queries += batch.shape[0]
+        output = self.defender.get_batch_label(batch)
+        return output.detach()
+
     def get_batch_input_gradient(self, batch, labels, lossf=None):
         self.gradient_queries += batch.shape[0]
         return self.defender.get_batch_input_gradient(batch, labels, lossf).detach()
@@ -75,17 +80,19 @@ class EvaluatePair:
         for img, labels in testset:
             org_img = img.to(self.device)
             org_img = torch.unsqueeze(org_img, 0)
-            output = self.defender.get_batch_output(org_img)
-            _, predicted = torch.max(output.data, 1)
+            # output = self.defender.get_batch_output(org_img)
+            # _, predicted = torch.max(output.data, 1)
+            # predicted = self.defender.get_batch_label(org_img)
+            if self.defender.get_batch_label:
+                predicted = self.defender.get_batch_label(org_img)
+            else:
+                outputs = self.defender.get_batch_output(org_img)
+                _, predicted = torch.max(outputs, 1)
             if predicted != labels or (target_label != None and target_label == labels):
                 # print(f"skipped data point: org_label {labels}, predicted_label {predicted.item()}")
                 continue
             # print(org_img.shape)
             perturbed_data, success = attack_method(org_img, [labels], target_label) # img size: [1,28,28]
-
-            # print(perturbed_data.shape, org_img.shape)
-            # exit()
-
             perturbed_images.append((labels, perturbed_data[0]))
             delta_data = org_img.detach().cpu().numpy() - perturbed_data
             distance.append(np.linalg.norm(delta_data))
@@ -97,7 +104,6 @@ class EvaluatePair:
         # trainset = self.dataset['train']
         # valset = self.dataset['val']
         testset = self.dataset['test'] # TorchVisionDataset
-        # testset = self.dataset['server_test'] # TorchVisionDataset
 
         adv_images = []
         gt_labels = []
@@ -109,8 +115,6 @@ class EvaluatePair:
             adv_images.append(image[1])
             gt_labels.append(image[0])
         adv_images = (torch.tensor(np.array(adv_images)).type(torch.FloatTensor))
-        # print(np.array(adv_images).shape)
-        # exit()
         gt_labels = torch.tensor(gt_labels)
 
         adv_dataset = torch.utils.data.TensorDataset(adv_images, gt_labels)
@@ -124,8 +128,11 @@ class EvaluatePair:
                 labels = labels.to(self.device)
                     # outputs = model(inputs)
                 # print(inputs.shape)
-                outputs = self.defender.get_batch_output(inputs)
-                _, predicted = torch.max(outputs, 1)
+                if self.defender.get_batch_label:
+                    predicted = self.defender.get_batch_label(inputs)
+                else:
+                    outputs = self.defender.get_batch_output(inputs)
+                    _, predicted = torch.max(outputs, 1)                # _, predicted = torch.max(outputs, 1)
                 if target_label != None:
                     targeted_success += (predicted == target_label).sum().item()
                     # targeted_success -= (predicted == torch.full(predicted.shape, -1, dtype=torch.int).to(self.device)).sum().item()
@@ -139,7 +146,6 @@ class EvaluatePair:
         print("total: ", total)
         # print("query:", self.defender.predict_queries, self.defender.gradient_queries)
         return {"targeted_adv_sr": targeted_adv_sr, "untargeted_adv_sr": untargeted_adv_sr, "run_time": run_time, "distance": np.mean(distance), "predict_queries": self.defender.predict_queries/total, "gradient_queries": self.defender.gradient_queries/total}
-        # return score
 
     def raw_evaluate(self):
         # 3 evaluate on original data
@@ -156,8 +162,15 @@ class EvaluatePair:
             for inputs, labels in testloader:
                 inputs = inputs.to(self.device)
                 labels = labels.to(self.device)
-                output = self.defender.get_batch_output(inputs)
-                _, predicted = torch.max(output.data, 1)
+                # output = self.defender.get_batch_output(inputs)
+                # _, predicted = torch.max(output.data, 1)
+                if self.defender.get_batch_label:
+                    predicted = self.defender.get_batch_label(inputs)
+                else:
+                    outputs = self.defender.get_batch_output(inputs)
+                    _, predicted = torch.max(outputs, 1)
+
+                # predicted = self.defender.get_batch_label(inputs)
                 total += labels.size(0)
                 # print(predicted)
                 correct += (predicted == labels).sum().item()
