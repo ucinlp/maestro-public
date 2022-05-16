@@ -7,7 +7,6 @@ Please do not change LeNet, the name of batch_predict and predict function of th
 import torch
 import numpy as np
 import torch.nn.functional as F
-
 import torch.nn as nn
 import torch.optim as optim
 
@@ -58,13 +57,22 @@ class Prediction():
         perturbed_image = original_images.unsqueeze(0)
         return perturbed_image
 
+    def detect_attack(self, original_image):
+        return False
+
     def get_batch_output(self, images):
         predictions = []
-        # for image in images:
-        predictions = self.model(images).to(self.device)
-            # predictions.append(prediction)
-        # predictions = torch.tensor(predictions)
+        for ini_image in images:
+            image = torch.unsqueeze(ini_image, 0)
+            if self.detect_attack(image):
+                predictions.append(-1)
+            else:
+                prediction = self.model(image).to(self.device)
+                predictions.append(prediction.detach().cpu().numpy())
+        predictions = torch.tensor(predictions).to(self.device)
+        predictions = torch.squeeze(predictions, 1)
         return predictions
+
 
     def get_batch_input_gradient(self, original_images, labels, lossf=None):
         original_images.requires_grad = True
@@ -78,4 +86,3 @@ class Prediction():
         loss.backward()
         data_grad = original_images.grad.data
         return data_grad
-
