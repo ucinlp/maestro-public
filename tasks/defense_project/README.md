@@ -9,7 +9,7 @@ tasks/defense_project/datasets/CIFAR10/student/
 ## Assignment
 Complete or revise the train.py and predict.py in the following path and then run the train.py file by the following commands to generate the defense_project-model.pth file.
 ```
-$ cd tasks/defense_homework/submission/ # predict.py and train.py are under the path.
+$ cd tasks/defense_project/submission/ # predict.py and train.py are under the path.
 $ python train.py
 ```
 
@@ -24,7 +24,7 @@ $ python Evaluator_defense_project.py
 ## Results
 View your results at
 ```
-tasks/attack_project/results.json
+tasks/defense_project/results.json
 ```
 
 ## Evaluation metrics
