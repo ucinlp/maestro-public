@@ -19,7 +19,7 @@ def evaluate_defense(attack_list, defense_path, dataset, device, target_label=No
         # results[attack_path.split('/')[-1].split('.')[0]+"_targeted_sr"] = r['targeted_adv_sr']
         results[attack_path.split('/')[-1].split('.')[0]+"_untargeted_sr"] = r['untargeted_adv_sr']
 
-        if (results['raw_acc'] > 95) and (r['untargeted_adv_sr'] < 10):
+        if (results['raw_acc'] > 95) and (r['untargeted_adv_sr'] < 12):
             results["meets_expectations"] = "True"
         else:
             results["meets_expectations"] = "False"

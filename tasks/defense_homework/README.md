@@ -22,5 +22,5 @@ tasks/defense_homework/results.json
 
 ## Evaluation metrics
 You need to satisfy the following criteria to make a valid submission
-1. attack success rate < 10%.
+1. attack success rate < 12%.
 2. raw accuracy > 95 %.
