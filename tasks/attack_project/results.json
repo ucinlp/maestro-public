@@ -1,1 +1,1 @@
-"{'attacker_success_rate': 0.0, 'time': 0.05619598599150777, 'dist': 5.6859717, 'predict': 2.0, 'gradient': 0, 'score': 22.413704350789388}"
+"{'attacker_success_rate': 0.0, 'time': 0.08848303556442261, 'dist': 0.0, 'predict': 3.0434782608695654, 'gradient': 0.0, 'total_queries': 3.0434782608695654, 'attack_type': 'BlackBox', 'score': 29.93913043478261}"

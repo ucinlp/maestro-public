@@ -10,13 +10,13 @@ def evaluate_attack(defense_list, attack_path, dataset, device, target_label=Non
     for defense_path in defense_list:
         e = EvaluatePair(attack_path, defense_path, dataset, device)
         r = e.evaluate(target_label)
-        results["attacker_success_rate"] = 100 - r['targeted_adv_acc']
+        results["attacker_success_rate"] = r['targeted_adv_sr']
         results["time"] = r['run_time']
         results["dist"] = r['distance']
         results["predict"] = r['predict_queries']
         results["gradient"] = r['gradient_queries']
 
-        if (100 - r['targeted_adv_acc'] > 96) and (r['distance'] < 7.75) and (r['predict_queries'] < 8500):
+        if (r['targeted_adv_sr'] > 96) and (r['distance'] < 7.75) and (r['predict_queries'] < 8500):
             results["meets_expectations"] = "True"
         else:
             results["meets_expectations"] = "False"
@@ -26,12 +26,12 @@ def evaluate_attack(defense_list, attack_path, dataset, device, target_label=Non
 def run():
     parser = argparse.ArgumentParser(description="Attack Homework Evaluation")
     parser.add_argument('--data_path', type=str, default='datasets/MNIST/student', help='path to the folder containing datasets')
-    parser.add_argument('--folder_path', type=str, default='tasks/attack_homework', help='the folder path that need to evaluate. If evaluating the attack, use tasks/attack_homework.')
-    parser.add_argument('--defender_path', type=str, default='tasks/attack_homework/defender', help='the folder path that need to evaluate. If evaluating the attack, use tasks/war_attack.')
+    parser.add_argument('--folder_path', type=str, default='submission', help='the folder path that need to evaluate. If evaluating the attack, use tasks/attack_homework.')
+    parser.add_argument('--defender_path', type=str, default='defender', help='the folder path that need to evaluate. If evaluating the attack, use tasks/war_attack.')
     parser.set_defaults(feature=True)
     args = parser.parse_args()
     # print(args)
-    students_submission_path = 'submission'
+    students_submission_path = args.folder_path
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # print("device: ", device)
     dataset_configs = {
@@ -46,16 +46,16 @@ def run():
     dataset_configs["dataset_path"] = args.data_path
     dataset = get_dataset(dataset_configs)
     defense_list = [
-            "defender",
+            args.defender_path,
         ]
-    target_label = 0 
+    target_label = 0
     results = evaluate_attack(defense_list, students_submission_path, dataset,  device, target_label)
     print(results)
     file_path = 'results.json'
     with open(file_path, 'w') as f:
-        json.dump(results,f, indent=4)
+        json.dump(results,f, indent= 4)
     return results
-       
+
 
 if __name__ == "__main__":
     run()

@@ -1,1 +1,4 @@
 **/__pycache__/*
+**/datasets/CIFAR10/**
+datasets/*
+**/*.pth

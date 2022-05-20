@@ -30,13 +30,17 @@ class VirtualModel:
 
     def get_batch_output(self, batch):
         self.predict_queries += batch.shape[0]
-        output = self.defender.get_batch_output(batch)
-        return output.detach()
+        outputs = self.defender.get_batch_output(batch)
+        return outputs.detach()
 
     def get_batch_label(self, batch):
         self.predict_queries += batch.shape[0]
-        output = self.defender.get_batch_label(batch)
-        return output.detach()
+        if hasattr(self.defender, 'get_batch_label'):
+            predicted = self.defender.get_batch_label(batch)
+        else:
+            outputs = self.defender.get_batch_output(batch)
+            _, predicted = torch.max(outputs, 1)
+        return predicted
 
     def get_batch_input_gradient(self, batch, labels, lossf=None):
         self.gradient_queries += batch.shape[0]
@@ -83,11 +87,7 @@ class EvaluatePair:
             # output = self.defender.get_batch_output(org_img)
             # _, predicted = torch.max(output.data, 1)
             # predicted = self.defender.get_batch_label(org_img)
-            if self.defender.get_batch_label:
-                predicted = self.defender.get_batch_label(org_img)
-            else:
-                outputs = self.defender.get_batch_output(org_img)
-                _, predicted = torch.max(outputs, 1)
+            predicted = self.defender.get_batch_label(org_img)
             if predicted != labels or (target_label != None and target_label == labels):
                 # print(f"skipped data point: org_label {labels}, predicted_label {predicted.item()}")
                 continue
@@ -128,11 +128,7 @@ class EvaluatePair:
                 labels = labels.to(self.device)
                     # outputs = model(inputs)
                 # print(inputs.shape)
-                if self.defender.get_batch_label:
-                    predicted = self.defender.get_batch_label(inputs)
-                else:
-                    outputs = self.defender.get_batch_output(inputs)
-                    _, predicted = torch.max(outputs, 1)                # _, predicted = torch.max(outputs, 1)
+                predicted = self.defender.get_batch_label(inputs)
                 if target_label != None:
                     targeted_success += (predicted == target_label).sum().item()
                     # targeted_success -= (predicted == torch.full(predicted.shape, -1, dtype=torch.int).to(self.device)).sum().item()
@@ -164,13 +160,7 @@ class EvaluatePair:
                 labels = labels.to(self.device)
                 # output = self.defender.get_batch_output(inputs)
                 # _, predicted = torch.max(output.data, 1)
-                if self.defender.get_batch_label:
-                    predicted = self.defender.get_batch_label(inputs)
-                else:
-                    outputs = self.defender.get_batch_output(inputs)
-                    _, predicted = torch.max(outputs, 1)
-
-                # predicted = self.defender.get_batch_label(inputs)
+                predicted = self.defender.get_batch_label(inputs)
                 total += labels.size(0)
                 # print(predicted)
                 correct += (predicted == labels).sum().item()

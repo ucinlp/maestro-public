@@ -1,0 +1,5 @@
+{
+    "raw_acc": 99.0,
+    "nontarget_FGSM_untargeted_sr": 78.65168539325843,
+    "meets_expectations": "False"
+}

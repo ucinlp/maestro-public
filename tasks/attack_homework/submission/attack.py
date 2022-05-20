@@ -12,13 +12,13 @@ class Attack:
         vm, device, attack_path,
         image_size = [1,28,28],
         n_population=100,
-        n_generation=200,
-        mask_rate=0.3,
-        temperature=0.1,
-        use_mask=False,
+        n_generation=100,
+        mask_rate=0.2,
+        temperature=0.3,
+        use_mask=True,
         step_size=0.1,
-        child_rate=0.2,
-        mutate_rate=0.2,
+        child_rate=0.5,
+        mutate_rate=0.6,
         l2_threshold=7.5,
     ):
         """
@@ -62,26 +62,41 @@ class Attack:
             label of that perturbed iamge
             success: whether the attack succeds
         """
+        original_image = torch.squeeze(original_image, 0)
         original_image = original_image.cpu().detach().numpy()
+        self.image_size = original_image.shape
         self.original_image = np.array(original_image)
-        print("target_label is: ",target_label)
+        # print("image_size = ", self.original_image.shape)
+        # print("target_label is: ",target_label)
         self.mask = np.random.binomial(1, self.mask_rate, size=self.image_size).astype(
             "bool"
         )
         population = self.init_population(original_image)
+        # print("type of population: ", type(population))
         examples = [(labels[0], labels[0], np.squeeze(x)) for x in population[:10]]
+        #visualize(examples, "population.png")
         success = False
         for g in range(self.n_generation):
-            print("generation: ", g)
+            # print("generation: ", g)
             population, output, scores, best_index = self.eval_population(
                 population, target_label
             )
+            # type(population) : <class 'numpy.ndarray'>
+            # print("shape of population: ", population)
+            # print("shape of population: ", population.shape)
+            # print(f"Generation: {g} best score: {scores[best_index]}")
             if np.argmax(output[best_index, :]) == target_label:
                 print(f"Attack Success!")
+                # visualize([(labels[0],np.argmax(output[best_index, :]),np.squeeze(population[best_index]))], "after_GA1.png")
                 success = True
                 break
-        
-        return population[best_index], success
+        # print("type of population: ", type(population[best_index]))
+
+        perturbed_image = population[best_index]
+
+        # print("shape of population 1: ", perturbed_image.shape)
+        perturbed_image = np.expand_dims(perturbed_image,0)
+        return perturbed_image, success
 
     def fitness(self, image: np.ndarray, target: int):
         """
@@ -128,11 +143,11 @@ class Attack:
 
         # Survived: rest of the top genes that survived, mutated with some probability
         survived = []  # Survived, and mutate some of them
-        
+
         # Offsprings: offsprings of strong genes
         # Identify the parents of the children based on select_probs, then use crossover to produce the next generation
         children = []
-        
+
         # population =np.array(elite + survived +children)
         population = population  # Delete this and uncomment the line above if you finished implementing
         # ------------END TODO-------------
@@ -170,6 +185,7 @@ class Attack:
                 0,
                 1,
             )
+        # print("size of perturbed :", perturbed.shape)
         return perturbed
 
     def crossover(self, x1, x2):
@@ -199,7 +215,7 @@ class Attack:
         return np.array(
             [self.perturb(original_image[0]) for _ in range(self.n_population)]
         )
-    
+
     def _get_batch_outputs_numpy(self, image: np.ndarray):
         image_tensor = torch.FloatTensor(image)
         image_tensor = image_tensor.to(self.device)
