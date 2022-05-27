@@ -12,18 +12,18 @@ tasks/attack_war/datasets/CIFAR10/student/
 ## Assignment
 Write your attack method in ToDo sections of attack.py in the following path
 ```
-tasks/attack_project/submission/attack.py
+tasks/attack_war/submission/attack.py
 ```
 You could also add other files/models like detector model in defense_project and use it in the code. These folders need to be present in the following folder
 ```
-tasks/attack_project/submission/
+tasks/attack_war/submission/
 ```
 And you can load these files in you attack.py using attack_path argument passed in attack class instance.
 
 ## Evaluating the submissions
 Run the evaluator by following steps
 ```
-$ cd tasks/attack_project/
+$ cd tasks/attack_war/
 $ python Evaluator_attack_project.py
 ```
 
@@ -33,7 +33,7 @@ You need to submit attack.py and all the files/models you used for attack.py if 
 ## Results
 View your results at 
 ```
-tasks/attack_project/results.json
+tasks/attack_war/results.json
 ```
 
 ## Evaluation metrics
