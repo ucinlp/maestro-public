@@ -24,7 +24,7 @@ And you can load these files in you attack.py using attack_path argument passed 
 Run the evaluator by following steps
 ```
 $ cd tasks/attack_war/
-$ python Evaluator_attack_project.py
+$ python Evaluator_attack_war.py
 ```
 
 ## What to submit
