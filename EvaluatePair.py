@@ -28,19 +28,10 @@ class VirtualModel:
         self.defender.model.to(device)
         return self
 
-    def get_batch_output(self, batch):
+    def get_batch_output(self, batch, with_preprocess=True, skip_detect=False):
         self.predict_queries += batch.shape[0]
-        outputs = self.defender.get_batch_output(batch)
-        return outputs.detach()
-
-    def get_batch_label(self, batch):
-        self.predict_queries += batch.shape[0]
-        if hasattr(self.defender, 'get_batch_label'):
-            predicted = self.defender.get_batch_label(batch)
-        else:
-            outputs = self.defender.get_batch_output(batch)
-            _, predicted = torch.max(outputs, 1)
-        return predicted
+        outputs, detect_outputs = self.defender.get_batch_output(batch, with_preprocess=with_preprocess, skip_detect=skip_detect)
+        return outputs.detach(), detect_outputs
 
     def get_batch_input_gradient(self, batch, labels, lossf=None):
         self.gradient_queries += batch.shape[0]
@@ -84,11 +75,9 @@ class EvaluatePair:
         for img, labels in testset:
             org_img = img.to(self.device)
             org_img = torch.unsqueeze(org_img, 0)
-            # output = self.defender.get_batch_output(org_img)
-            # _, predicted = torch.max(output.data, 1)
-            # predicted = self.defender.get_batch_label(org_img)
-            predicted = self.defender.get_batch_label(org_img)
-            if predicted != labels or (target_label != None and target_label == labels):
+            output, detect_outputs = self.defender.get_batch_output(org_img)
+            _, predicted = torch.max(output.data, 1)
+            if (predicted != labels) or (detect_outputs == [1]) or (target_label != None and target_label == labels):
                 # print(f"skipped data point: org_label {labels}, predicted_label {predicted.item()}")
                 continue
             # print(org_img.shape)
@@ -126,20 +115,19 @@ class EvaluatePair:
             for inputs, labels in adv_testloader:
                 inputs = inputs.to(self.device)
                 labels = labels.to(self.device)
-                    # outputs = model(inputs)
-                # print(inputs.shape)
-                predicted = self.defender.get_batch_label(inputs)
-                if target_label != None:
-                    targeted_success += (predicted == target_label).sum().item()
-                    # targeted_success -= (predicted == torch.full(predicted.shape, -1, dtype=torch.int).to(self.device)).sum().item()
+                output, detect_outputs = self.defender.get_batch_output(inputs)
+                _, predicted = torch.max(output.data, 1)
 
+                if target_label != None:
+                    targeted_success += ((predicted == target_label)& (detect_outputs != torch.full(predicted.shape, 1, dtype=torch.int).to(self.device))).sum().item()
                 total += labels.size(0)
-                untargeted_success += (predicted != labels).sum().item()
-                untargeted_success -= (predicted == torch.full(predicted.shape, -1, dtype=torch.int).to(self.device)).sum().item()
+                untargeted_success += ((predicted != labels)& (detect_outputs != torch.full(predicted.shape, 1, dtype=torch.int).to(self.device))).sum().item()
+                # untargeted_success -= (predicted == torch.full(predicted.shape, -1, dtype=torch.int).to(self.device)).sum().item()
+
         # print("Accuracy of the network on the adv images: %.3f %%" % (100 * correct / total))
         targeted_adv_sr = 100 * targeted_success / total
         untargeted_adv_sr = 100 * untargeted_success / total
-        print("total: ", total)
+        print("targeted_success, total: ", targeted_success, total )
         # print("query:", self.defender.predict_queries, self.defender.gradient_queries)
         return {"targeted_adv_sr": targeted_adv_sr, "untargeted_adv_sr": untargeted_adv_sr, "run_time": run_time, "distance": np.mean(distance), "predict_queries": self.defender.predict_queries/total, "gradient_queries": self.defender.gradient_queries/total}
 
@@ -158,12 +146,13 @@ class EvaluatePair:
             for inputs, labels in testloader:
                 inputs = inputs.to(self.device)
                 labels = labels.to(self.device)
-                # output = self.defender.get_batch_output(inputs)
-                # _, predicted = torch.max(output.data, 1)
-                predicted = self.defender.get_batch_label(inputs)
+                output, detect_outputs = self.defender.get_batch_output(inputs)
+                _, predicted = torch.max(output.data, 1)
+
+                # print(predicted, labels)
                 total += labels.size(0)
                 # print(predicted)
-                correct += (predicted == labels).sum().item()
+                correct += ((predicted == labels)& (detect_outputs != torch.full(predicted.shape, 1, dtype=torch.int).to(self.device))).sum().item()
         run_time = time.perf_counter() - start_time
 
         print("Accuracy of the network on the images: %.3f %%" % (100 * correct / total))
