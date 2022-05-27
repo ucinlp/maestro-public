@@ -1,0 +1,1 @@
+{"raw_acc": 85.41666666666667, "score": 97.98780487804879, "target_FGSM_targeted_sr": 2.4390243902439024, "target_PGD_targeted_sr": 6.097560975609756, "attack_project-ZhenwenLi-20220427_212628_targeted_sr": 2.4390243902439024, "attack_project-Ching-TingTsai-20220427_004733_targeted_sr": 2.4390243902439024, "team_name": "BenTen", "timestamp": "2022-05-19-17:42:33"}

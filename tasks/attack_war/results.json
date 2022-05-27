@@ -1,0 +1,1 @@
+"{'score': 29.933698630136988, 'defender_fgsm_attacker_success_rate': 0.0, 'defender_fgsm_time': 0.0942798675969243, 'defender_fgsm_dist': 0.0, 'defender_fgsm_predict': 3.315068493150685, 'defender_fgsm_gradient': 0.0, 'defender_fgsm_total_queries': 3.315068493150685, 'attack_type': 'BlackBox', 'defender_fgsm_score': 29.933698630136988}"
