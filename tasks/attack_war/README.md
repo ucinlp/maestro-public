@@ -28,7 +28,7 @@ $ python Evaluator_attack_project.py
 ```
 
 ## What to submit
-You need to submit attack.py and all the files/models you used for attack.py (only as files NOT the submission folder)
+You need to submit attack.py and all the files/models you used for attack.py if any (only as files of submission folder NOT the submission folder)
 
 ## Results
 View your results at 
@@ -46,6 +46,7 @@ This is tentative and may change based on submissions.
 
 ## Things to be taken note of:
 1. get_batch_output function is changed which will output a tuple - (output, detected). 
-2. You can add extra files for your attack.py
+2. You can load/add extra files/models for your attack.py
+3. Currently there is only one defender is made available to you, second model will be updated in a couple of days. 
 
 # GOOD LUCK !!!
