@@ -25,13 +25,13 @@ def evaluate_attack(defense_list, attack_path, dataset, device, target_label=Non
 
         results[defense_path.split('/')[-1].split('.')[0]+"_score"] = (max(results[defense_path.split('/')[-1].split('.')[0]+"_attacker_success_rate"] - 40, 0)/60) * 70 + (max(1000 - results[defense_path.split('/')[-1].split('.')[0]+"_total_queries"], 0)/1000) * 20 + (max(15-results[defense_path.split('/')[-1].split('.')[0]+"_dist"],0)/15) * 10
 
-        results["score"] += results[defense_path.split('/')[-1].split('.')[0]+"_score"]
+        results["score"] += results[defense_path.split('/')[-1].split('.')[0]+"_score"] * (1/len(defense_list))
         # if (100 - r['targeted_adv_acc'] > 96) and (r['distance'] < 7.75) and (r['predict_queries'] < 8500):
         #     results["meets_expectations"] = "True"
         # else:
         #     results["meets_expectations"] = "False"
 
-    results["score"] /= len(defense_list)
+     # results["score"] /= len(defense_list)
     return results
 
 def run():
