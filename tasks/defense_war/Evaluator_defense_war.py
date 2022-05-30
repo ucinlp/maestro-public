@@ -44,7 +44,8 @@ def run():
     }
     dataset = get_dataset(dataset_configs)
     attack_list = [
-            args.eval_method_path + "/target_PGD"
+            args.eval_method_path + "/target_PGD",
+            args.eval_method_path + "/target_genetic"
             ]
     target_label = 0
     results = evaluate_defense(attack_list, students_submission_path, dataset,  device, target_label)
