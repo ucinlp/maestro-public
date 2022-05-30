@@ -1,7 +1,9 @@
 # Attack War_Phase
 
 ## Description
-To be updated
+Previously, in the attack and defense projects, students have implemented methods to test the vulnerability of the system to differentiate animal activity versus human activity using a vision neural network. Now the goal is to improve further the robustness of the system, we propose a competition where each team can decide to challenge the system by implementing a new attack or a defense. 
+
+To start the competition, the best models from attack and defense projects will be chosen. In total, there are going to be 2 rounds, at the beginning of each round, the best models from the previous round will be taken.
 
 ## Dowloading datasets
 Download the datasets from here and copy them the following path 
@@ -47,6 +49,5 @@ This is tentative and may change based on submissions.
 ## Things to be taken note of:
 1. get_batch_output function is changed which will output a tuple - (output, detected). 
 2. You can load/add extra files/models for your attack.py
-3. Currently there is only one defender is made available to you, second model will be updated in a couple of days. 
 
 # GOOD LUCK !!!
