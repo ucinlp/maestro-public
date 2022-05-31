@@ -6,7 +6,7 @@ Previously, in the attack and defense projects, students have implemented method
 To start the competition, the best models from attack and defense projects will be chosen. In total, there are going to be 2 rounds, at the beginning of each round, the best models from the previous round will be taken.
 
 ## Dowloading datasets
-Download the datasets from here and copy them the following path 
+Download the datasets from canvas and copy them the following path 
 ```
 tasks/attack_war/datasets/CIFAR10/student/
 ```
@@ -49,6 +49,4 @@ This is tentative and may change based on submissions.
 ## Things to be taken note of:
 1. get_batch_output function is changed which will output a tuple - (output, detected). 
 2. You can load/add extra files/models for your attack.py
-3. In whitebox attacks it is better to set parameters of get_batch_output function as with_preprocess=False, skip_detect=True for getting ouput gradients as probabilities.
-
-# GOOD LUCK !!!
+3. As described [here](https://github.com/ucinlp/maestro-public/blob/main/tasks/defense_war/README.md#api-update-5-30-2022), if input image is detected as adversarial image then model returns 4 elements zero array along with a number 1(detection) and attacker won't be able to get output probabilities. And gradients returned by get_batch_input_gradient() are generated directly from the model without any preprocessing and detections functionalities. This is same to as running the defender setup keeping with_preprocess as False and skip_detect as True. So if you want output probabilities and gradients of same input you need to run get_batch_output() with ```with_preprocess=False, skip_detect=True```.
