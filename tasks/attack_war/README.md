@@ -49,5 +49,6 @@ This is tentative and may change based on submissions.
 ## Things to be taken note of:
 1. get_batch_output function is changed which will output a tuple - (output, detected). 
 2. You can load/add extra files/models for your attack.py
+3. In whitebox attacks it is better to set parameters of get_batch_output function as with_preprocess=False, skip_detect=True for getting ouput gradients as probabilities.
 
 # GOOD LUCK !!!
