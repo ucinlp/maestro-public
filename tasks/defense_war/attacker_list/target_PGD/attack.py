@@ -39,11 +39,14 @@ class Attack:
         return x
 
     def attack(self, original_images, labels, target_label = None, reduction4loss='mean', random_start=True):
+        assert len(labels) == 1, "image and label size should be 1. Otherwise, consider attack_batch function."
+        assert torch.is_tensor(original_images), "original_images should be a torch tensor."
+        assert torch.is_tensor(labels), "labels should be a torch tensor."
+        assert target_label != None, "target label should not be None"
         for epsilon in self.epsilons:
             self.epsilon = epsilon
-
             original_images = original_images.to(self.device)
-            labels = torch.tensor(labels).to(self.device)
+            labels = labels.to(self.device)
             target_labels = target_label * torch.ones_like(labels).to(self.device)
 
             if random_start:
@@ -80,3 +83,28 @@ class Attack:
 
         return x.cpu().detach().numpy(), 0
 
+    def attack_batch(self, original_images, labels, target_label = None, reduction4loss='mean', random_start=True):
+        assert torch.is_tensor(labels), "labels should be a torch tensor."
+        for epsilon in self.epsilons:
+            self.epsilon = epsilon
+            original_images = original_images.to(self.device)
+            labels = labels.to(self.device)
+            target_labels = target_label * torch.ones_like(labels).to(self.device)
+
+            if random_start:
+                rand_perturb = torch.FloatTensor(original_images.shape).uniform_(
+                    -self.epsilon, self.epsilon)
+                rand_perturb = rand_perturb.to(self.device)
+                x = original_images + rand_perturb
+                x.clamp_(self.min_val, self.max_val)
+            else:
+                x = original_images.clone()
+
+            with torch.enable_grad():
+                for _iter in range(self.max_iters):
+                    grads = self.vm.get_batch_input_gradient(x.data, target_labels)
+                    x.data -= self.alpha * torch.sign(grads.data)
+                    x = self.project(x, original_images, self.epsilon, self._type)
+                    x.clamp_(self.min_val, self.max_val)
+                    outputs, detect_outputs = self.vm.get_batch_output(x)
+        return x.cpu().detach().numpy(), 0

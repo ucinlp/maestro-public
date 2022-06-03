@@ -30,11 +30,14 @@ class Attack:
         self.max_val = 1
 
     def attack(
-        self, original_images: np.ndarray, labels: List[int], target_label = None,
+        self, original_images: torch.tensor, labels: torch.tensor, target_label = None,
     ):
+        assert torch.is_tensor(original_images), "original_images should be a torch tensor."
+        assert torch.is_tensor(labels), "labels should be a torch tensor."
+
         original_images = original_images.to(self.device)
         # original_images = torch.unsqueeze(original_images, 0)
-        labels = torch.tensor(labels).to(self.device)
+        labels = labels.to(self.device)
         # target_labels = target_label * torch.ones_like(labels).to(self.device)
         # print(original_images.shape)
         # get gradient with repect to labels

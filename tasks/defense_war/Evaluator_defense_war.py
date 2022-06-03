@@ -17,14 +17,15 @@ def evaluate_defense(attack_list, defense_path, dataset, device, target_label=No
             RAW = 1
         r = e.evaluate(target_label)
         results[attack_path.split('/')[-1].split('.')[0]+"_targeted_sr"] = r['targeted_adv_sr']
-        results[attack_path.split('/')[-1].split('.')[0]+"_dist"] = r['distance']
+        results[attack_path.split('/')[-1].split('.')[0]+"_dist"] = r['distance'].item()
         results[attack_path.split('/')[-1].split('.')[0]+"_query"] = r['predict_queries'] + r['gradient_queries']
+
         results[attack_path.split('/')[-1].split('.')[0]+"_score"] = (max(100-r['targeted_adv_sr'], 0)/100) * 70 + (1-max(1500-results[attack_path.split('/')[-1].split('.')[0]+"_query"], 0)/1500) * 20 + (1-max(15-results[attack_path.split('/')[-1].split('.')[0]+"_dist"], 0)/15) * 10
     return results
 
 
 def run():
-    parser = argparse.ArgumentParser(description="Defense Homework Evaluation")
+    parser = argparse.ArgumentParser(description="Defense War Evaluation")
     parser.add_argument('--data_path', type=str, default='datasets/CIFAR10/student/', help='path to the folder containing datasets')
     parser.add_argument('--folder_path', type=str, default='submission', help='the folder path that need to evaluate. such as tasks/defense_war/')
     parser.add_argument('--eval_method_path', type=str, default='attacker_list', help='the folder path that need to evaluate.')
@@ -52,7 +53,7 @@ def run():
     print(results)
     file_path = 'results.json'
     with open(file_path, 'w') as f:
-        json.dump(str(results),f, indent= 4)
+        json.dump(results,f, indent= 4)
     return results
 
 

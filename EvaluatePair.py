@@ -81,7 +81,7 @@ class EvaluatePair:
                 # print(f"skipped data point: org_label {labels}, predicted_label {predicted.item()}")
                 continue
             # print(org_img.shape)
-            perturbed_data, success = attack_method(org_img, [labels], target_label) # img size: [1,28,28]
+            perturbed_data, success = attack_method(org_img, torch.tensor([labels]), target_label) # img size: [1,28,28]
             perturbed_images.append((labels, perturbed_data[0]))
             delta_data = org_img.detach().cpu().numpy() - perturbed_data
             distance.append(np.linalg.norm(delta_data))
@@ -146,6 +146,9 @@ class EvaluatePair:
             for inputs, labels in testloader:
                 inputs = inputs.to(self.device)
                 labels = labels.to(self.device)
+                # output = self.defender.get_batch_output(inputs)
+                # _, predicted = torch.max(output.data, 1)
+                # predicted = self.defender.get_batch_label(inputs)
                 output, detect_outputs = self.defender.get_batch_output(inputs)
                 _, predicted = torch.max(output.data, 1)
 

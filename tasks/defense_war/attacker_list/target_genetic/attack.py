@@ -49,20 +49,22 @@ class Attack:
         self.mutate_rate = mutate_rate
         self.l2_threshold = l2_threshold
     def attack(
-        self, original_images: np.ndarray, labels: List[int], target_label = None,
+        self, original_images: torch.tensor, labels: torch.tensor, target_label = None,
     ):
-        original_images = original_images.to(self.device)
-        labels = torch.tensor(labels).to(self.device)
-        target_labels = target_label * torch.ones_like(labels).to(self.device)
-        perturbed_image = original_images
+        assert torch.is_tensor(original_images), "original_images should be a torch tensor."
+        assert torch.is_tensor(labels), "labels should be a torch tensor."
 
+        original_images = original_images.to(self.device)
+        labels = labels.to(self.device)
+        target_labels = target_label * torch.ones_like(labels).to(self.device)
+        perturbed_image = original_images.detach().cpu().numpy()
         self.mask = np.random.binomial(1, self.mask_rate, size=self.image_size).astype(
             "bool"
         )
 
         self.original_image = original_images.detach().cpu().numpy()
+        #print("o i:", np.shape(self.original_image))
         population = self.init_population(self.original_image)
-
         examples = [(labels[0], labels[0], np.squeeze(x)) for x in population[:10]]
         success = False
         for g in range(self.n_generation):
@@ -72,10 +74,11 @@ class Attack:
             )
             if np.argmax(output[best_index, :]) == target_label:
                 # print(f"Attack Success!")
-                perturbed_image = population[best_index]
+                perturbed_image = np.array(population[best_index])
                 success = True
                 break
-
+            # print(type(population))
+        assert type(perturbed_image) == np.ndarray, "perturbed_image should be numpy"
         perturbed_image = torch.FloatTensor(perturbed_image)
         image_tensor = perturbed_image.to(self.device)
 
@@ -208,6 +211,7 @@ class Attack:
         return perturbed
 
     def _get_batch_outputs_numpy(self, image: np.ndarray):
+        #print("image:", np.shape(image))
         image = np.array([i[0] for i in image])
         image_tensor = torch.FloatTensor(image)
         image_tensor = image_tensor.to(self.device)

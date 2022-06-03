@@ -1,1 +1,12 @@
-"{'raw_acc': 68.75, 'raw_score': 27.77777777777778, 'target_PGD_targeted_sr': 100.0, 'target_PGD_dist': 2.4784977, 'target_PGD_query': 123.0, 'target_PGD_score': 3.2923318290710446}"
+{
+    "raw_acc": 68.75,
+    "raw_score": 27.77777777777778,
+    "target_PGD_targeted_sr": 100.0,
+    "target_PGD_dist": 2.5800483226776123,
+    "target_PGD_query": 126.83673469387756,
+    "target_PGD_score": 3.411188677703443,
+    "target_genetic_targeted_sr": 100.0,
+    "target_genetic_dist": 11.260327339172363,
+    "target_genetic_query": 1901.9183673469388,
+    "target_genetic_score": 27.506884892781578
+}
