@@ -80,7 +80,7 @@ class Adv_Training():
         self.min_val = min_val
         self.max_val = max_val
         self.target_label = target_label
-        self.perturb = self.load_perturb("../attacker_list/target_PGD")
+        self.perturb = self.load_perturb("../attacker_list/target_FGSM")
 
     def load_perturb(self, attack_path):
         spec = importlib.util.spec_from_file_location('attack', attack_path + '/attack.py')
@@ -105,7 +105,7 @@ class Adv_Training():
                 inputs = inputs.to(device)
                 labels = labels.to(device)
                 # zero the parameter gradients
-                adv_inputs, _ = self.perturb.attack_batch(inputs, labels.detach().cpu(), 0)
+                adv_inputs, _ = self.perturb.attack_batch(inputs, labels.detach().cpu())
                 adv_inputs = torch.tensor(adv_inputs).to(device)
                 # zero the parameter gradients
                 optimizer.zero_grad()
