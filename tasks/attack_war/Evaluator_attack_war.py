@@ -56,8 +56,8 @@ def run():
     }
     dataset = get_dataset(dataset_configs)
     defense_list = [
-            args.defender_list + "defender_fgsm",
             args.defender_list + "defender_1",
+            args.defender_list + "defender_2",
         ]
     target_label = 1
     results = evaluate_attack(defense_list, students_submission_path, dataset,  device, target_label)
