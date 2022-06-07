@@ -39,12 +39,14 @@ class Attack:
         return x
 
     def attack(self, original_images, labels, target_label = None, reduction4loss='mean', random_start=True):
+        self.vm.defender.model.eval()
         assert len(labels) == 1, "image and label size should be 1. Otherwise, consider attack_batch function."
         assert torch.is_tensor(original_images), "original_images should be a torch tensor."
         assert torch.is_tensor(labels), "labels should be a torch tensor."
         assert target_label != None, "target label should not be None"
         for epsilon in self.epsilons:
             self.epsilon = epsilon
+            # print(self.epsilon)
             original_images = original_images.to(self.device)
             labels = labels.to(self.device)
             target_labels = target_label * torch.ones_like(labels).to(self.device)
@@ -65,22 +67,17 @@ class Attack:
                     x = self.project(x, original_images, self.epsilon, self._type)
                     x.clamp_(self.min_val, self.max_val)
                     outputs, detect_outputs = self.vm.get_batch_output(x)
-
-                    if detect_outputs == [1]:
+                    # print(detect_outputs.item())
+                    if detect_outputs.item() == 1:
+                        # print("detect_outputs")
                         continue
-                    else:
+                    elif detect_outputs.item() == 0:
                         final_pred = outputs.max(1, keepdim=True)[1]
+                        # print(final_pred, target_labels )
                         correct = (final_pred == target_labels).sum().item()
                         if correct == 1:
+                            # print("boom 0")
                             return x.cpu().detach().numpy(), correct
-            if detect_outputs.item() == 1:
-                continue
-            else:
-                final_pred = outputs.max(1, keepdim=True)[1]
-                correct = (final_pred == target_labels).sum().item()
-                if correct == 1:
-                    return x.cpu().detach().numpy(), correct
-
         return x.cpu().detach().numpy(), 0
 
     def attack_batch(self, original_images, labels, target_label = None, reduction4loss='mean', random_start=True):

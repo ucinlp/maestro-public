@@ -82,11 +82,13 @@ class EvaluatePair:
                 continue
             # print(org_img.shape)
             perturbed_data, success = attack_method(org_img, torch.tensor([labels]), target_label) # img size: [1,28,28]
+            assert not np.isnan(perturbed_data[0]).any(), "perturbed_images contain nan elements."
+
             perturbed_images.append((labels, perturbed_data[0]))
             delta_data = org_img.detach().cpu().numpy() - perturbed_data
             distance.append(np.linalg.norm(delta_data))
             n_success_attack += success
-        # print("adversarial_success: ", n_success_attack)
+        # print("n_success_attack: ", n_success_attack)
         return distance, perturbed_images, n_success_attack
 
     def evaluate(self, target_label = None):

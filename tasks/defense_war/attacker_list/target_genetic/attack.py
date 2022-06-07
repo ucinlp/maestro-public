@@ -13,8 +13,8 @@ class Attack:
         min_val = 0,
         max_val = 1,
         image_size = [1, 3, 32, 32],
-        n_population = 100,
-        n_generation = 200,
+        n_population = 50,
+        n_generation = 50,
         mask_rate = 0.2,
         temperature = 0.1,
         use_mask = False,
@@ -69,15 +69,16 @@ class Attack:
         success = False
         for g in range(self.n_generation):
             # print("generation: ", g)
-            population, output, scores, best_index = self.eval_population(
+            population, output, scores, best_index, detect_outputs = self.eval_population(
                 population, target_label
             )
-            if np.argmax(output[best_index, :]) == target_label:
+            if (np.argmax(output[best_index, :]) == target_label)& (detect_outputs[best_index].item() == 0):
                 # print(f"Attack Success!")
                 perturbed_image = np.array(population[best_index])
                 success = True
                 break
             # print(type(population))
+        perturbed_image = np.array(population[best_index])
         assert type(perturbed_image) == np.ndarray, "perturbed_image should be numpy"
         perturbed_image = torch.FloatTensor(perturbed_image)
         image_tensor = perturbed_image.to(self.device)
@@ -86,6 +87,7 @@ class Attack:
         final_pred = adv_outputs.max(1, keepdim=True)[1]
         correct = 0
         correct += (final_pred == target_labels).sum().item()
+        # print("out", g)
         return perturbed_image.detach().cpu().numpy(), correct
 
     def init_population(self, original_image: np.ndarray):
@@ -101,49 +103,49 @@ class Attack:
         )
 
     def eval_population(self, population, target_label):
-        output, scores = self.fitness(population, target_label)
-        score_ranks = np.sort(scores, axis=None)[::-1]
-        best_index = np.where(scores == score_ranks[0])[0][0]
+        """
+        evaluate the population, pick the parents, and then crossover to get the next
+        population
+        args:
+            population: current population, a list of images
+            target_label: target label we want the imageto be classiied, int
+        return:
+            population: population of all the images
+            output: output of the model
+            scores: the "fitness" of the image, measured as logits of the target label
+            best_indx: index of the best image in the population
+        """
+        output, scores, detect_outputs = self.fitness(population, target_label)
         logits = np.exp(scores / self.temperature)
         select_probs = logits / np.sum(logits)
+        score_ranks = np.argsort(scores)[::-1]
+        best_index = score_ranks[0]
+        # print(detect_outputs.shape, output.shape, best_index)
+        if (np.argmax(output[best_index, :]) == target_label) & (detect_outputs[best_index].item() == 0):
+            return population, output, scores, best_index, detect_outputs
 
-
-        if np.argmax(output[best_index, :]) == target_label:
-            return population, output, scores, best_index
-
+        # the elite gene that's defeintely in the next population without perturbation
         elite = [population[best_index]]
 
-        offspring = int((self.n_population - 1) * self.child_rate)
+        # strong and fit genes passed down to next generation, they have a chance to mutate
+        survival_number = int((1 - self.child_rate) * (self.n_population - 1))
+        survived = [population[idx] for idx in score_ranks[1 : survival_number + 1]]
+        survived = [
+            self.perturb(x) if np.random.uniform() < self.mutate_rate else x
+            for x in survived
+        ]
 
-        survive = self.n_population - 1 - offspring
-
-        survived = []
-
-        for i in range(1, survive + 1):
-            sind = np.where(scores == score_ranks[i])[0][0]
-            survived.append(population[sind])
-
-        mutate_num = int(survive * self.mutate_rate)
-
-        randomchoice = np.random.choice(survive, mutate_num, replace=False)
-
-
-        for i in range(0, mutate_num - 1):
-            survived[randomchoice[i]] = self.perturb(survived[randomchoice[i]])
-
-        ptemp = select_probs[0:40]
-        pselect = ptemp / np.sum(ptemp)
-        children = []
-        for i in range(0, 100 - 1 - survive):
-            select = np.random.choice(40, 2, replace=False, p=pselect)
-            sind1 = np.where(scores == score_ranks[select[0]])[0][0]
-            sind2 = np.where(scores == score_ranks[select[1]])[0][0]
-            pimage = self.crossover(population[sind1], population[sind2])
-            children.append(pimage)
-
-        population = np.array(elite + survived + children)
-        return population, output, scores, best_index
-
+        # offsprings of strong genes
+        child_number = self.n_population - 1 - survival_number
+        mom_index = np.random.choice(self.n_population, child_number, p=select_probs)
+        dad_index = np.random.choice(self.n_population, child_number, p=select_probs)
+        childs = [
+            self.crossover(population[mom_index[i]], population[dad_index[i]])
+            for i in range(child_number)
+        ]
+        # childs = [self.perturb(childs[i]) for i in range(len(childs))]
+        population = np.array(elite + survived + childs)
+        return population, output, scores, best_index, detect_outputs
     def crossover(self, x1, x2):
         """
         crossover two images to get a new one. We use a uniform distribution with p=0.5
@@ -168,13 +170,12 @@ class Attack:
             output: output of the model
             scores: the "fitness" of the image, measured as logits of the target label
         """
-        output = self._get_batch_outputs_numpy(image)
+        output, detect_outputs = self._get_batch_outputs_numpy(image)
         softmax_output = np.exp(output) / np.expand_dims(
             np.sum(np.exp(output), axis=1), axis=1
         )
         scores = softmax_output[:, target]
-        return output, scores
-
+        return output, scores, detect_outputs
 
     def perturb(self, image):
         """
@@ -215,7 +216,5 @@ class Attack:
         image = np.array([i[0] for i in image])
         image_tensor = torch.FloatTensor(image)
         image_tensor = image_tensor.to(self.device)
-
-        outputs, _ = self.vm.get_batch_output(image_tensor)
-
-        return outputs.detach().cpu().numpy()
+        outputs, detect_outputs = self.vm.get_batch_output(image_tensor)
+        return outputs.detach().cpu().numpy(), detect_outputs
