@@ -27,7 +27,7 @@ def evaluate_defense(attack_list, defense_path, dataset, device, target_label=No
         results[attack_path.split('/')[-1].split('.')[0]+"_score"] = (max(100-r['targeted_adv_sr'], 0)/100) * 70 + (1-max(1500-results[attack_path.split('/')[-1].split('.')[0]+"_query"], 0)/1500) * 20 + (1-max(15-results[attack_path.split('/')[-1].split('.')[0]+"_dist"], 0)/15) * 10
         results['score'] += results[attack_path.split('/')[-1].split('.')[0]+"_score"] * 0.6/len(attack_list)
         end = time.time()
-        print("time: ", end - start)
+        # print("time: ", end - start)
 
     return results
 
