@@ -163,6 +163,11 @@ class Attack:
                         x_new[0][i][j][k] = x2[0][i][j][k]
         return x_new
 
+
+    def softmax(self, x):
+        r=np.exp(x - np.max(x))
+        return r/r.sum(axis=1).reshape(x.shape[0], 1)
+
     def fitness(self, image: np.ndarray, target: int):
         """
         evaluate how fit the current image is
@@ -171,9 +176,7 @@ class Attack:
             scores: the "fitness" of the image, measured as logits of the target label
         """
         output, detect_outputs = self._get_batch_outputs_numpy(image)
-        softmax_output = np.exp(output) / np.expand_dims(
-            np.sum(np.exp(output), axis=1), axis=1
-        )
+        softmax_output = self.softmax(output)
         scores = softmax_output[:, target]
         return output, scores, detect_outputs
 
