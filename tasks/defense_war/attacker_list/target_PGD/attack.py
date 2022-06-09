@@ -39,7 +39,6 @@ class Attack:
         return x
 
     def attack(self, original_images, labels, target_label = None, reduction4loss='mean', random_start=True):
-        self.vm.defender.model.eval()
         assert len(labels) == 1, "image and label size should be 1. Otherwise, consider attack_batch function."
         assert torch.is_tensor(original_images), "original_images should be a torch tensor."
         assert torch.is_tensor(labels), "labels should be a torch tensor."
