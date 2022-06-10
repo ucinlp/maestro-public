@@ -118,6 +118,7 @@ class Attack:
         output, scores, detect_outputs = self.fitness(population, target_label)
         logits = np.exp(scores / self.temperature)
         select_probs = logits / np.sum(logits)
+
         score_ranks = np.argsort(scores)[::-1]
         best_index = score_ranks[0]
         # print(detect_outputs.shape, output.shape, best_index)
@@ -165,8 +166,13 @@ class Attack:
 
 
     def softmax(self, x):
-        r=np.exp(x - np.max(x))
-        return r/r.sum(axis=1).reshape(x.shape[0], 1)
+        after_softmax = []
+        for single_x in x:
+            r=np.exp(single_x - np.max(single_x))
+            p = r / np.sum(r)
+            after_softmax.append(p)
+        after_softmax = np.array(after_softmax)
+        return after_softmax
 
     def fitness(self, image: np.ndarray, target: int):
         """
