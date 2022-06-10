@@ -77,7 +77,7 @@ class EvaluatePair:
             org_img = torch.unsqueeze(org_img, 0)
             output, detect_outputs = self.defender.get_batch_output(org_img)
             _, predicted = torch.max(output.data, 1)
-            if (predicted != labels) or (detect_outputs == [1]) or (target_label != None and target_label == labels):
+            if (predicted != labels) or (detect_outputs.detach().cpu().item() == 1) or (target_label != None and target_label == labels):
                 # print(f"skipped data point: org_label {labels}, predicted_label {predicted.item()}")
                 continue
             # print(org_img.shape)
