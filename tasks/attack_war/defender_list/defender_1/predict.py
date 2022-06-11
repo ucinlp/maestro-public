@@ -90,7 +90,7 @@ class Prediction():
         predictions = self.model(images).to(self.device)
             # predictions.append(prediction)
         # predictions = torch.tensor(predictions)
-        return predictions, [0]*images.shape[0]
+        return predictions, torch.tensor([0]*images.shape[0]).to(self.device)
 
     def get_batch_input_gradient(self, original_images, labels, lossf=None):
         original_images=self.preprocess(original_images)
